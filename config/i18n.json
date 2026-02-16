@@ -1,0 +1,13 @@
+{
+  "default": "en",
+  "prefixes": {
+    "en": "/en",
+    "de": "/de",
+    "tr": "/tr"
+  },
+  "switcherLabel": {
+    "en": "Language",
+    "de": "Sprache",
+    "tr": "Dil"
+  }
+}

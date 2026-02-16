@@ -1,0 +1,86 @@
+{
+  "logo": {
+    "primary": {
+      "url": "/assets/images/logos/logo-primary.svg",
+      "alt": "Adamsons Accountants logo",
+      "usage": ["Header light", "Hero light", "SEO"]
+    },
+    "white": {
+      "url": "/assets/images/logos/logo-white.svg",
+      "alt": "Adamsons Accountants logo (white)",
+      "usage": ["Header over dark hero", "Footer dark"]
+    },
+    "grey": {
+      "url": "/assets/images/logos/logo-grey.svg",
+      "alt": "Adamsons Accountants logo (grey)",
+      "usage": ["Watermark"]
+    },
+    "favicon": {
+      "url": "/assets/images/logos/favicon.svg",
+      "alt": "Site favicon",
+      "usage": ["Favicon"]
+    }
+  },
+  "home": {
+    "heroBg": {
+      "url": "/assets/images/home/hero-bg.jpg",
+      "alt": "Modern office background (finance)"
+    },
+    "features1": {
+      "url": "/assets/images/home/features1.jpg",
+      "alt": "Accounting team"
+    },
+    "features2": {
+      "url": "/assets/images/home/features2.jpg",
+      "alt": "Small business"
+    }
+  },
+  "about": {
+    "team": {
+      "url": "/assets/images/about/team.jpg",
+      "alt": "Diverse team of professionals collaborating in a modern workspace"
+    }
+  },
+  "services": {
+    "compliance": {
+      "url": "/assets/images/services/compliance.jpg",
+      "alt": "Compliance documentation"
+    },
+    "support": {
+      "url": "/assets/images/services/support.jpg",
+      "alt": "Financial support"
+    },
+    "consultancy": {
+      "url": "/assets/images/services/consultancy.jpg",
+      "alt": "Consultancy & systems"
+    },
+    "startup": {
+      "url": "/assets/images/services/startup.jpg",
+      "alt": "Business start-up"
+    },
+    "taxation": {
+      "url": "/assets/images/services/taxation.jpg",
+      "alt": "Taxation"
+    },
+    "corporationTax": {
+      "url": "/assets/images/services/corporation-tax.jpg",
+      "alt": "Corporation tax"
+    },
+    "personalTax": {
+      "url": "/assets/images/services/personal-tax.jpg",
+      "alt": "Personal tax"
+    },
+    "vat": {
+      "url": "/assets/images/services/vat.jpg",
+      "alt": "VAT"
+    },
+    "niPaye": {
+      "url": "/assets/images/services/ni-paye.jpg",
+      "alt": "NI and PAYE"
+    },
+    "hmrc": {
+      "url": "/assets/images/services/hmrc.jpg",
+      "alt": "HMRC Investigations"
+    }
+  }
+}

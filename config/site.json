@@ -1,0 +1,17 @@
+{
+  "name": "Adamsons Accountants",
+  "tagline": "Full Accounting Service",
+  "defaultLang": "en",
+  "langs": ["en", "de", "tr"],
+  "baseUrl": "https://www.adamsons.uk.com",
+  "contact": {
+    "address": "7 Lewisham Way, London, SE14 6PP",
+    "phone": "+44 (0)208 554 4449",
+    "email": "admin@adamsons.uk.com"
+  },
+  "external": {
+    "quoteForm": "https://form.ataaccountancy.com",
+    "verify": "https://verify.ataaccountancy.com",
+    "portal": "https://portal.ataaccountancy.com"
+  }
+}
