@@ -15,7 +15,7 @@ const HomePage = () => {
   const { currentLang } = useLanguage();
   const heroBg = getImage('home.heroBg');
   const features1 = getImage('home.features1');
-  const features2 =getImage('home.features2');
+  const features2 = getImage('home.features2');
 
   const content = {
     en: {

@@ -107,8 +107,8 @@ const Footer = () => {
 
           <div>
             <span className="font-semibold text-lg mb-4 block">{t.language}</span>
-            <div className="w-fit rounded-2xl bg-[#0F0F0F] ring-1 ring-white/10 p-2 shadow-inner backdrop-blur-sm">
-              <LanguageSwitcher />
+            <div className="w-fit rounded-2xl bg-white/10 ring-1 ring-white/20 p-2 shadow-inner backdrop-blur-sm">
+              <LanguageSwitcher isOverlay />
             </div>
           </div>
         </div>

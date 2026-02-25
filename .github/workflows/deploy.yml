@@ -26,6 +26,18 @@ jobs:
       - name: Build project
         run: npx vite build
 
+      - name: Clean index.html (remove Horizons debug scripts)
+        run: |
+          node -e "
+          const fs = require('fs');
+          let html = fs.readFileSync('dist/index.html', 'utf8');
+          html = html.replace(/<script type=\"module\">[^<]*window\.parent\.postMessage[\s\S]*?<\/script>\s*/g, '');
+          html = html.replace(/<script type=\"module\">[^<]*originalConsoleError[\s\S]*?<\/script>\s*/g, '');
+          html = html.replace(/<script type=\"module\">[^<]*originalFetch[\s\S]*?<\/script>\s*/g, '');
+          html = html.replace(/<script type=\"module\">[^<]*MutationObserver[\s\S]*?<\/script>\s*/g, '');
+          fs.writeFileSync('dist/index.html', html);
+          "
+
       - name: Deploy to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:

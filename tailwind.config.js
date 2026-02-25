@@ -12,11 +12,23 @@ module.exports = {
       colors: {
         primary: {
           900: '#3f4042',
+          800: '#454647',
           700: '#4a4b4c',
           600: '#5b5c5d',
           500: '#707273',
           300: '#b7b9ba',
-          100: '#d7d9da'
+          100: '#d7d9da',
+          50: '#f0f1f1'
+        },
+        brand: {
+          900: '#3f4042',
+          800: '#454647',
+          700: '#4a4b4c',
+          600: '#5b5c5d',
+          500: '#707273',
+          300: '#b7b9ba',
+          100: '#d7d9da',
+          50: '#f0f1f1'
         },
         surface: {
           DEFAULT: '#ffffff',
@@ -30,7 +42,6 @@ module.exports = {
           muted: '#707273',
           soft: '#b7b9ba'
         },
-        // Keep semantic colors for notifications etc.
         success: {
           500: '#48BB78',
         },

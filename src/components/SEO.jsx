@@ -20,11 +20,11 @@ const SEO = ({
 
   const getAlternateUrl = (targetLang) => {
     const path = location.pathname;
-    const langRegex = /^\/(en|de|tr)/;
+    const langRegex = /^\/(en|de|tr)(\/|$)/;
     if (langRegex.test(path)) {
-      return `${siteConfig.baseUrl}${path.replace(langRegex, `/${targetLang}`)}`;
+      return `${siteConfig.baseUrl}${path.replace(langRegex, `/${targetLang}$2`)}`;
     }
-    return `${siteConfig.baseUrl}/${targetLang}${path}`;
+    return `${siteConfig.baseUrl}/${targetLang}`;
   };
 
   return (
@@ -32,7 +32,8 @@ const SEO = ({
       <html lang={lang} />
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
-      
+      <meta name="theme-color" content="#3f4042" />
+
       <link rel="canonical" href={canonicalUrl} />
       <link rel="alternate" hrefLang="en" href={getAlternateUrl('en')} />
       <link rel="alternate" hrefLang="de" href={getAlternateUrl('de')} />
@@ -49,6 +50,7 @@ const SEO = ({
       <meta property="og:description" content={description} />
       <meta property="og:type" content="website" />
       <meta property="og:url" content={canonicalUrl} />
+      <meta property="og:site_name" content={siteConfig.name} />
       {ogImage && <meta property="og:image" content={ogImage} />}
       
       <meta name="twitter:card" content="summary_large_image" />

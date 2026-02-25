@@ -15,11 +15,18 @@ const Header = ({ isHomePage }) => {
   const { getImage } = useImageRegistry();
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 40);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 40);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
     handleScroll();
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
@@ -103,7 +110,7 @@ const Header = ({ isHomePage }) => {
                   onClick={() => setIsMobileMenuOpen(true)}
                   className="lg:hidden p-2 rounded-md transition-colors z-50 text-current"
                   aria-label="Toggle mobile menu"
-                  aria-expanded="false"
+                  aria-expanded={isMobileMenuOpen}
                >
                   <Menu size={28} className={isOverlayMode ? 'text-white' : 'text-primary-900'} />
                </button>

@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 
-const ServiceCard = ({ title, summary, href, imageUrl, imageAlt }) => {
+const ServiceCard = React.memo(({ title, summary, href, imageUrl, imageAlt }) => {
   const { currentLang } = useLanguage();
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const learnMoreText = {
     en: "Learn More",
@@ -19,15 +21,26 @@ const ServiceCard = ({ title, summary, href, imageUrl, imageAlt }) => {
         whileHover={{ y: -8 }}
         className="bg-white rounded-xl overflow-hidden shadow-md group-hover:shadow-xl transition-all h-full flex flex-col"
       >
-        <div className="h-48 overflow-hidden">
-          <img
-            src={imageUrl}
-            alt={imageAlt || title}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-            loading="lazy"
-            width="400"
-            height="192"
-          />
+        <div className="h-48 overflow-hidden relative bg-neutral-100">
+          {!imgLoaded && !imgError && (
+            <div className="absolute inset-0 bg-neutral-200 animate-pulse" />
+          )}
+          {imgError ? (
+            <div className="absolute inset-0 bg-neutral-100 flex items-center justify-center text-neutral-400 text-sm">
+              {title}
+            </div>
+          ) : (
+            <img
+              src={imageUrl}
+              alt={imageAlt || title}
+              className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-110 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+              loading="lazy"
+              width="400"
+              height="192"
+              onLoad={() => setImgLoaded(true)}
+              onError={() => setImgError(true)}
+            />
+          )}
         </div>
         <div className="p-6 flex flex-col flex-grow">
           <h3 className="text-xl font-bold text-primary-900 mb-3">{title}</h3>
@@ -40,6 +53,6 @@ const ServiceCard = ({ title, summary, href, imageUrl, imageAlt }) => {
       </motion.div>
     </Link>
   );
-};
+});
 
 export default ServiceCard;

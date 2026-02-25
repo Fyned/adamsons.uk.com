@@ -6,14 +6,29 @@
   RewriteRule ^ index.html [L]
 </IfModule>
 
-<IfModule mod_headers.c>
-  Header set X-Powered-By "Hostinger Horizons"
+# Gzip compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml text/xml text/plain
+</IfModule>
 
-  # Cache everything on CDN by default
-  Header set Cache-Control "public, s-maxage=604800, max-age=0"
-  
-  # Cache in browser all assets
+<IfModule mod_headers.c>
+  # Cache assets in browser (1 week)
   <If "%{REQUEST_URI} =~ m#^/assets/.*$#">
-    Header set Cache-Control "public, max-age=604800"
+    Header set Cache-Control "public, max-age=604800, immutable"
   </If>
+
+  # Cache images (1 month)
+  <If "%{REQUEST_URI} =~ m#\.(jpg|jpeg|png|svg|webp|gif|ico)$#">
+    Header set Cache-Control "public, max-age=2592000"
+  </If>
+
+  # No cache for HTML (SPA)
+  <If "%{REQUEST_URI} =~ m#\.html$#">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </If>
+
+  # Security headers
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>

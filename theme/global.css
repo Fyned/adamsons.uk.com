@@ -112,8 +112,8 @@ input:focus, select:focus, textarea:focus {
   border-bottom-color: var(--brand-ash);
 }
 
-/* Ensure the logo is visible on dark areas (soft white glow) */
-.site-logo img {
+/* Logo glow only when header is transparent (overlay mode) */
+.bg-transparent .site-logo img {
   filter: drop-shadow(0 0 12px rgba(255,255,255,.9));
 }
 
@@ -175,4 +175,21 @@ input:focus, select:focus, textarea:focus {
 
 .skip-link:focus {
   top: 1rem;
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Mobile hero height fix (avoids address bar issue) */
+@supports (min-height: 100dvh) {
+  .hero-banner {
+    min-height: 100dvh;
+  }
 }
