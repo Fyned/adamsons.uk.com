@@ -87,12 +87,10 @@ try {
     $mail->send();
 
     // Save to Sent folder via IMAP so it appears in webmail/other clients
-    $imapStatus = 'skipped';
     if (function_exists('imap_open')) {
         $server = '{imap.hostinger.com:993/imap/ssl}';
         $imap = @imap_open($server . 'INBOX', $from, $ACCOUNTS[$from]);
         if ($imap) {
-            // Find the actual Sent folder name
             $folders = @imap_list($imap, $server, '*');
             $sentFolder = null;
             if ($folders) {
@@ -105,25 +103,13 @@ try {
                 }
             }
             if ($sentFolder) {
-                $msg = $mail->getSentMIMEMessage();
-                $saved = @imap_append($imap, $sentFolder, $msg, "\\Seen");
-                $imapStatus = $saved ? 'saved' : 'append_failed: ' . imap_last_error();
-            } else {
-                $imapStatus = 'no_sent_folder. folders: ' . json_encode(
-                    $folders ? array_map(function($f) use ($server) {
-                        return str_replace($server, '', $f);
-                    }, $folders) : []
-                );
+                @imap_append($imap, $sentFolder, $mail->getSentMIMEMessage(), "\\Seen");
             }
             @imap_close($imap);
-        } else {
-            $imapStatus = 'connect_failed: ' . imap_last_error();
         }
-    } else {
-        $imapStatus = 'imap_extension_not_available';
     }
 
-    echo json_encode(['success' => true, 'sent_folder' => $imapStatus]);
+    echo json_encode(['success' => true]);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $mail->ErrorInfo]);
 }
