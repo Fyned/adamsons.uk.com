@@ -15,31 +15,64 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+require_once __DIR__ . '/phpmailer/Exception.php';
+require_once __DIR__ . '/phpmailer/PHPMailer.php';
+require_once __DIR__ . '/phpmailer/SMTP.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+$ACCOUNTS = [
+    'admin@adamsons.uk.com'          => 'London-748596',
+    'info@adamsons.uk.com'           => 'London-748596',
+    'payroll@adamsons.uk.com'        => 'London-748596',
+    'selfassessment@adamsons.uk.com' => 'London-748596',
+    'latif@adamsons.uk.com'          => 'London-748596',
+];
+
 $data = json_decode(file_get_contents('php://input'), true);
 
-$to = filter_var($data['to'] ?? '', FILTER_SANITIZE_EMAIL);
+$to      = filter_var($data['to'] ?? '', FILTER_SANITIZE_EMAIL);
 $subject = $data['subject'] ?? '';
-$htmlBody = $data['html'] ?? '';
-$from = 'admin@adamsons.uk.com';
+$html    = $data['html'] ?? '';
+$from    = $data['from'] ?? '';
 
 if (!$to || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
     echo json_encode(['success' => false, 'error' => 'Invalid recipient email']);
     exit;
 }
 
-if (!$subject || !$htmlBody) {
+if (!$subject || !$html) {
     echo json_encode(['success' => false, 'error' => 'Missing subject or body']);
     exit;
 }
 
-$boundary = md5(time());
+if (!isset($ACCOUNTS[$from])) {
+    echo json_encode(['success' => false, 'error' => 'Invalid sender account']);
+    exit;
+}
 
-$headers = "MIME-Version: 1.0\r\n";
-$headers .= "Content-type: text/html; charset=UTF-8\r\n";
-$headers .= "From: Adamsons Accountants <$from>\r\n";
-$headers .= "Reply-To: $from\r\n";
-$headers .= "X-Mailer: Adamsons-Email-Template\r\n";
+$mail = new PHPMailer(true);
 
-$success = mail($to, $subject, $htmlBody, $headers);
+try {
+    $mail->isSMTP();
+    $mail->Host       = 'smtp.hostinger.com';
+    $mail->SMTPAuth   = true;
+    $mail->Username   = $from;
+    $mail->Password   = $ACCOUNTS[$from];
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+    $mail->Port       = 465;
+    $mail->CharSet    = 'UTF-8';
 
-echo json_encode(['success' => $success]);
+    $mail->setFrom($from, 'Adamsons Accountants');
+    $mail->addAddress($to);
+
+    $mail->isHTML(true);
+    $mail->Subject = $subject;
+    $mail->Body    = $html;
+
+    $mail->send();
+    echo json_encode(['success' => true]);
+} catch (Exception $e) {
+    echo json_encode(['success' => false, 'error' => $mail->ErrorInfo]);
+}

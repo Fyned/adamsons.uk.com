@@ -203,9 +203,18 @@ export default function AdamsonsTemplateGenerator() {
   const [copied, setCopied] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
+  const [senderEmail, setSenderEmail] = useState("admin@adamsons.uk.com");
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState(null);
   const previewRef = useRef(null);
+
+  const SENDER_ACCOUNTS = [
+    { email: "admin@adamsons.uk.com", label: "Admin" },
+    { email: "info@adamsons.uk.com", label: "Info" },
+    { email: "payroll@adamsons.uk.com", label: "Payroll" },
+    { email: "selfassessment@adamsons.uk.com", label: "Self Assessment" },
+    { email: "latif@adamsons.uk.com", label: "Latif" },
+  ];
 
   const template = TEMPLATES[activeTemplate];
 
@@ -280,7 +289,7 @@ export default function AdamsonsTemplateGenerator() {
       const res = await fetch("/api/send-email.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ to: recipientEmail, subject, html: generatedHTML }),
+        body: JSON.stringify({ to: recipientEmail, from: senderEmail, subject, html: generatedHTML }),
       });
 
       const data = await res.json();
@@ -296,7 +305,7 @@ export default function AdamsonsTemplateGenerator() {
       setSending(false);
       setTimeout(() => setSendResult(null), 5000);
     }
-  }, [recipientEmail, activeTemplate, values, generatedHTML]);
+  }, [recipientEmail, senderEmail, activeTemplate, values, generatedHTML]);
 
   const tabStyle = (key) => ({
     padding: "10px 16px",
@@ -364,6 +373,24 @@ export default function AdamsonsTemplateGenerator() {
 
       <div style={{ background: "#f7fafc", padding: "16px 24px", borderBottom: "1px solid #e2e8f0" }}>
         <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 12 }}>
+          <select
+            value={senderEmail}
+            onChange={(e) => setSenderEmail(e.target.value)}
+            style={{
+              padding: "10px 14px",
+              border: "2px solid #e2e8f0",
+              borderRadius: 8,
+              fontSize: 14,
+              outline: "none",
+              background: "#fff",
+              cursor: "pointer",
+              minWidth: 180,
+            }}
+          >
+            {SENDER_ACCOUNTS.map((a) => (
+              <option key={a.email} value={a.email}>{a.label} ({a.email})</option>
+            ))}
+          </select>
           <input
             type="email"
             placeholder="Recipient email (e.g. client@company.com)"
