@@ -202,6 +202,9 @@ export default function AdamsonsTemplateGenerator() {
   const [values, setValues] = useState({});
   const [copied, setCopied] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sendResult, setSendResult] = useState(null);
   const previewRef = useRef(null);
 
   const template = TEMPLATES[activeTemplate];
@@ -253,6 +256,47 @@ export default function AdamsonsTemplateGenerator() {
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
   }, [generatedHTML]);
+
+  const SUBJECT_MAP = {
+    approval: "VAT Return – Approval Required",
+    payment: "VAT Submitted – Payment Required",
+    refund: "VAT Submitted – Refund Due",
+  };
+
+  const handleSend = useCallback(async () => {
+    if (!recipientEmail || !recipientEmail.includes("@")) {
+      setSendResult({ ok: false, msg: "Please enter a valid email address" });
+      setTimeout(() => setSendResult(null), 4000);
+      return;
+    }
+
+    const company = values.COMPANY_NAME || "Client";
+    const subject = `${SUBJECT_MAP[activeTemplate]} – ${company}`;
+
+    setSending(true);
+    setSendResult(null);
+
+    try {
+      const res = await fetch("/api/send-email.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: recipientEmail, subject, html: generatedHTML }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setSendResult({ ok: true, msg: "Email sent successfully!" });
+      } else {
+        setSendResult({ ok: false, msg: data.error || "Failed to send email" });
+      }
+    } catch {
+      setSendResult({ ok: false, msg: "Network error – send only works on the live server" });
+    } finally {
+      setSending(false);
+      setTimeout(() => setSendResult(null), 5000);
+    }
+  }, [recipientEmail, activeTemplate, values, generatedHTML]);
 
   const tabStyle = (key) => ({
     padding: "10px 16px",
@@ -318,44 +362,101 @@ export default function AdamsonsTemplateGenerator() {
         </div>
       </div>
 
-      <div style={{ background: "#f7fafc", padding: "16px 24px", display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-        <button
-          onClick={handleCopy}
-          style={{
-            padding: "10px 24px",
-            background: copied ? "#276749" : "#1a2744",
-            color: "#fff",
-            border: "none",
-            borderRadius: 8,
-            fontSize: 14,
+      <div style={{ background: "#f7fafc", padding: "16px 24px", borderBottom: "1px solid #e2e8f0" }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 12 }}>
+          <input
+            type="email"
+            placeholder="Recipient email (e.g. client@company.com)"
+            value={recipientEmail}
+            onChange={(e) => setRecipientEmail(e.target.value)}
+            style={{
+              flex: 1,
+              minWidth: 220,
+              padding: "10px 14px",
+              border: "2px solid #e2e8f0",
+              borderRadius: 8,
+              fontSize: 14,
+              outline: "none",
+              transition: "border 0.2s",
+            }}
+            onFocus={(e) => (e.target.style.borderColor = "#1a2744")}
+            onBlur={(e) => (e.target.style.borderColor = "#e2e8f0")}
+          />
+          <button
+            onClick={handleSend}
+            disabled={sending}
+            style={{
+              padding: "10px 24px",
+              background: sending ? "#718096" : "#276749",
+              color: "#fff",
+              border: "none",
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: sending ? "wait" : "pointer",
+              transition: "background 0.2s",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {sending ? "Sending..." : "📧 Send Email"}
+          </button>
+        </div>
+        {sendResult && (
+          <div style={{
+            padding: "8px 14px",
+            borderRadius: 6,
+            fontSize: 13,
             fontWeight: 600,
-            cursor: "pointer",
-            transition: "background 0.2s",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
-          {copied ? "✓ Kopyalandı!" : "📋 HTML Kopyala"}
-        </button>
-        <button
-          onClick={() => setShowPreview(!showPreview)}
-          style={{
-            padding: "10px 24px",
-            background: "#fff",
-            color: "#1a2744",
-            border: "2px solid #1a2744",
-            borderRadius: 8,
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
-          {showPreview ? "Önizlemeyi Gizle" : "👁 Önizleme"}
-        </button>
-        <span style={{ fontSize: 12, color: "#718096", marginLeft: "auto" }}>
-          Copy → Gmail Compose → Ctrl+V → Send
-        </span>
+            marginBottom: 12,
+            background: sendResult.ok ? "#f0fff4" : "#fff5f5",
+            color: sendResult.ok ? "#276749" : "#c53030",
+            border: `1px solid ${sendResult.ok ? "#c6f6d5" : "#fed7d7"}`,
+          }}>
+            {sendResult.msg}
+          </div>
+        )}
+        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <button
+            onClick={handleCopy}
+            style={{
+              padding: "10px 24px",
+              background: copied ? "#276749" : "#1a2744",
+              color: "#fff",
+              border: "none",
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "background 0.2s",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            {copied ? "✓ Copied!" : "📋 Copy HTML"}
+          </button>
+          <button
+            onClick={() => setShowPreview(!showPreview)}
+            style={{
+              padding: "10px 24px",
+              background: "#fff",
+              color: "#1a2744",
+              border: "2px solid #1a2744",
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            {showPreview ? "Hide Preview" : "👁 Preview"}
+          </button>
+          <span style={{ fontSize: 11, color: "#a0aec0", marginLeft: "auto" }}>
+            Alternative: Copy → Gmail Compose → Ctrl+V
+          </span>
+        </div>
       </div>
 
       {showPreview && (
@@ -383,46 +484,28 @@ export default function AdamsonsTemplateGenerator() {
           <div style={{ marginBottom: 20 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>1. Select a Template and Fill the Form</div>
             <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
-              Choose one of the 3 templates above (VAT Approval, Payment Required or Refund Due). Fill in all the required fields. Use the <strong>Preview</strong> button to check how the email will look before copying.
+              Choose one of the 3 templates above (VAT Approval, Payment Required or Refund Due). Fill in all the required fields. Use the <strong>Preview</strong> button to check how the email will look.
             </p>
           </div>
 
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>2. Copy the Email</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>2. Enter Recipient Email</div>
             <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
-              Click the <strong>"HTML Kopyala"</strong> button. The formatted email will be copied to your clipboard as rich HTML content.
+              Type the client's email address in the <strong>recipient email</strong> field.
             </p>
           </div>
 
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>3. Open Gmail and Compose a New Email</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>3. Send Email</div>
             <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
-              Open Gmail and click the <strong>"Compose"</strong> button. Enter the recipient's email address and subject line.
-            </p>
-          </div>
-
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>4. Paste into Gmail</div>
-            <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
-              Click inside the email body area and press <strong>Ctrl+V</strong> (or Cmd+V on Mac). The professional HTML template will appear with full formatting, tables and logo.
-            </p>
-          </div>
-
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>5. Send</div>
-            <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
-              Review the email to make sure everything looks correct, then click <strong>"Send"</strong>. Your professional HTML email will be delivered!
+              Click the <strong>"Send Email"</strong> button. The professional HTML email will be sent directly from <strong>admin@adamsons.uk.com</strong> with full formatting, tables and logo preserved.
             </p>
           </div>
 
           <div style={{ background: "#f7fafc", borderRadius: 8, padding: "16px 20px", border: "1px solid #e2e8f0" }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#718096", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>Alternative Method</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#718096", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>Alternative: Copy & Paste</div>
             <p style={{ fontSize: 13, color: "#718096", lineHeight: 1.6, margin: 0 }}>
-              If direct paste doesn't preserve formatting, install the{" "}
-              <a href="https://chromewebstore.google.com/detail/insert-and-send-html-with/bcflbfdlpegakpncdgmejelcolhmfkjh?hl=en" target="_blank" rel="noopener noreferrer" style={{ color: "#4285f4", fontWeight: 600 }}>
-                Insert and Send HTML with Gmail
-              </a>{" "}
-              Chrome extension. Then use the <strong>{"<>"}</strong> icon in Gmail compose to paste the raw HTML code.
+              You can also use the <strong>"Copy HTML"</strong> button to copy the formatted email, then paste it into Gmail compose with <strong>Ctrl+V</strong>. Make sure Gmail is in <strong>Rich Text mode</strong> (not Plain Text).
             </p>
           </div>
         </div>
