@@ -200,13 +200,14 @@ const BUILDERS = {
 export default function AdamsonsTemplateGenerator() {
   const [activeTemplate, setActiveTemplate] = useState("approval");
   const [values, setValues] = useState({});
-  const [copied, setCopied] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
   const [senderEmail, setSenderEmail] = useState("admin@adamsons.uk.com");
+  const [attachments, setAttachments] = useState([]);
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState(null);
   const previewRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const SENDER_ACCOUNTS = [
     { email: "admin@adamsons.uk.com", label: "Admin" },
@@ -220,51 +221,32 @@ export default function AdamsonsTemplateGenerator() {
 
   const handleChange = useCallback((key, val) => {
     setValues((prev) => ({ ...prev, [key]: val }));
-    setCopied(false);
   }, []);
 
   const handleTemplateChange = useCallback((key) => {
     setActiveTemplate(key);
     setValues({});
-    setCopied(false);
+    setAttachments([]);
     setShowPreview(false);
   }, []);
 
   const generatedHTML = BUILDERS[activeTemplate](values);
 
-  const handleCopy = useCallback(() => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(generatedHTML, "text/html");
-    const bodyHTML = doc.body.innerHTML;
-    const bodyText = doc.body.textContent;
+  const handleFileAdd = useCallback((e) => {
+    const newFiles = Array.from(e.target.files);
+    setAttachments((prev) => [...prev, ...newFiles]);
+    e.target.value = "";
+  }, []);
 
-    const el = document.createElement("span");
-    el.textContent = "\u200B";
-    el.style.cssText = "position:fixed;left:-9999px";
-    document.body.appendChild(el);
+  const handleFileRemove = useCallback((index) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  }, []);
 
-    const range = document.createRange();
-    range.selectNodeContents(el);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-
-    const listener = (e) => {
-      e.clipboardData.setData("text/html", bodyHTML);
-      e.clipboardData.setData("text/plain", bodyText);
-      e.preventDefault();
-    };
-
-    document.addEventListener("copy", listener);
-    document.execCommand("copy");
-    document.removeEventListener("copy", listener);
-
-    sel.removeAllRanges();
-    document.body.removeChild(el);
-
-    setCopied(true);
-    setTimeout(() => setCopied(false), 3000);
-  }, [generatedHTML]);
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  };
 
   const SUBJECT_MAP = {
     approval: "VAT Return – Approval Required",
@@ -286,16 +268,23 @@ export default function AdamsonsTemplateGenerator() {
     setSendResult(null);
 
     try {
+      const formData = new FormData();
+      formData.append("to", recipientEmail);
+      formData.append("from", senderEmail);
+      formData.append("subject", subject);
+      formData.append("html", generatedHTML);
+      attachments.forEach((file) => formData.append("attachments[]", file));
+
       const res = await fetch("/api/send-email.php", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ to: recipientEmail, from: senderEmail, subject, html: generatedHTML }),
+        body: formData,
       });
 
       const data = await res.json();
 
       if (data.success) {
         setSendResult({ ok: true, msg: "Email sent successfully!" });
+        setAttachments([]);
       } else {
         setSendResult({ ok: false, msg: data.error || "Failed to send email" });
       }
@@ -305,7 +294,7 @@ export default function AdamsonsTemplateGenerator() {
       setSending(false);
       setTimeout(() => setSendResult(null), 5000);
     }
-  }, [recipientEmail, senderEmail, activeTemplate, values, generatedHTML]);
+  }, [recipientEmail, senderEmail, activeTemplate, values, generatedHTML, attachments]);
 
   const tabStyle = (key) => ({
     padding: "10px 16px",
@@ -446,24 +435,30 @@ export default function AdamsonsTemplateGenerator() {
           </div>
         )}
         <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            onChange={handleFileAdd}
+            style={{ display: "none" }}
+          />
           <button
-            onClick={handleCopy}
+            onClick={() => fileInputRef.current?.click()}
             style={{
               padding: "10px 24px",
-              background: copied ? "#276749" : "#1a2744",
-              color: "#fff",
-              border: "none",
+              background: "#fff",
+              color: "#1a2744",
+              border: "2px solid #1a2744",
               borderRadius: 8,
               fontSize: 14,
               fontWeight: 600,
               cursor: "pointer",
-              transition: "background 0.2s",
               display: "flex",
               alignItems: "center",
               gap: 8,
             }}
           >
-            {copied ? "✓ Copied!" : "📋 Copy HTML"}
+            📎 Attach Files
           </button>
           <button
             onClick={() => setShowPreview(!showPreview)}
@@ -480,10 +475,40 @@ export default function AdamsonsTemplateGenerator() {
           >
             {showPreview ? "Hide Preview" : "👁 Preview"}
           </button>
-          <span style={{ fontSize: 11, color: "#a0aec0", marginLeft: "auto" }}>
-            Alternative: Copy → Gmail Compose → Ctrl+V
-          </span>
         </div>
+        {attachments.length > 0 && (
+          <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {attachments.map((file, i) => (
+              <div key={i} style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "6px 12px",
+                background: "#edf2f7",
+                borderRadius: 6,
+                fontSize: 13,
+                color: "#4a5568",
+              }}>
+                <span>📄 {file.name}</span>
+                <span style={{ color: "#a0aec0", fontSize: 11 }}>({formatFileSize(file.size)})</span>
+                <button
+                  onClick={() => handleFileRemove(i)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#c53030",
+                    cursor: "pointer",
+                    fontSize: 16,
+                    padding: "0 2px",
+                    lineHeight: 1,
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {showPreview && (
@@ -516,23 +541,23 @@ export default function AdamsonsTemplateGenerator() {
           </div>
 
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>2. Enter Recipient Email</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>2. Choose Sender & Enter Recipient</div>
             <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
-              Type the client's email address in the <strong>recipient email</strong> field.
+              Select which email account to send from using the <strong>sender dropdown</strong>. Type the client's email address in the <strong>recipient email</strong> field.
             </p>
           </div>
 
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>3. Send Email</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>3. Attach Files (Optional)</div>
             <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
-              Click the <strong>"Send Email"</strong> button. The professional HTML email will be sent directly from <strong>admin@adamsons.uk.com</strong> with full formatting, tables and logo preserved.
+              Click <strong>"Attach Files"</strong> to add PDF documents, spreadsheets or other files. You can attach multiple files. Click <strong>×</strong> to remove an attachment.
             </p>
           </div>
 
-          <div style={{ background: "#f7fafc", borderRadius: 8, padding: "16px 20px", border: "1px solid #e2e8f0" }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#718096", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>Alternative: Copy & Paste</div>
-            <p style={{ fontSize: 13, color: "#718096", lineHeight: 1.6, margin: 0 }}>
-              You can also use the <strong>"Copy HTML"</strong> button to copy the formatted email, then paste it into Gmail compose with <strong>Ctrl+V</strong>. Make sure Gmail is in <strong>Rich Text mode</strong> (not Plain Text).
+          <div style={{ marginBottom: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>4. Send Email</div>
+            <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
+              Click <strong>"Send Email"</strong>. The professional HTML email with all attachments will be sent directly via SMTP with full formatting preserved.
             </p>
           </div>
         </div>

@@ -30,12 +30,10 @@ $ACCOUNTS = [
     'latif@adamsons.uk.com'          => 'London-748596',
 ];
 
-$data = json_decode(file_get_contents('php://input'), true);
-
-$to      = filter_var($data['to'] ?? '', FILTER_SANITIZE_EMAIL);
-$subject = $data['subject'] ?? '';
-$html    = $data['html'] ?? '';
-$from    = $data['from'] ?? '';
+$to      = filter_var($_POST['to'] ?? '', FILTER_SANITIZE_EMAIL);
+$subject = $_POST['subject'] ?? '';
+$html    = $_POST['html'] ?? '';
+$from    = $_POST['from'] ?? '';
 
 if (!$to || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
     echo json_encode(['success' => false, 'error' => 'Invalid recipient email']);
@@ -70,6 +68,21 @@ try {
     $mail->isHTML(true);
     $mail->Subject = $subject;
     $mail->Body    = $html;
+
+    if (!empty($_FILES['attachments'])) {
+        $files = $_FILES['attachments'];
+        $count = is_array($files['name']) ? count($files['name']) : 1;
+
+        for ($i = 0; $i < $count; $i++) {
+            $name = is_array($files['name']) ? $files['name'][$i] : $files['name'];
+            $tmp  = is_array($files['tmp_name']) ? $files['tmp_name'][$i] : $files['tmp_name'];
+            $err  = is_array($files['error']) ? $files['error'][$i] : $files['error'];
+
+            if ($err === UPLOAD_ERR_OK && is_uploaded_file($tmp)) {
+                $mail->addAttachment($tmp, $name);
+            }
+        }
+    }
 
     $mail->send();
     echo json_encode(['success' => true]);
