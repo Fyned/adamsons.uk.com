@@ -220,28 +220,29 @@ export default function AdamsonsTemplateGenerator() {
 
   const generatedHTML = BUILDERS[activeTemplate](values);
 
-  const handleCopy = useCallback(async () => {
-    try {
-      const htmlBlob = new Blob([generatedHTML], { type: "text/html" });
-      const textBlob = new Blob([generatedHTML], { type: "text/plain" });
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          "text/html": htmlBlob,
-          "text/plain": textBlob,
-        }),
-      ]);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 3000);
-    } catch {
-      const ta = document.createElement("textarea");
-      ta.value = generatedHTML;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      document.body.removeChild(ta);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 3000);
-    }
+  const handleCopy = useCallback(() => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(generatedHTML, "text/html");
+    const bodyContent = doc.body.innerHTML;
+
+    const container = document.createElement("div");
+    container.innerHTML = bodyContent;
+    container.style.cssText = "position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none;";
+    document.body.appendChild(container);
+
+    const range = document.createRange();
+    range.selectNodeContents(container);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    document.execCommand("copy");
+
+    sel.removeAllRanges();
+    document.body.removeChild(container);
+
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
   }, [generatedHTML]);
 
   const tabStyle = (key) => ({
