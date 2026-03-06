@@ -18,6 +18,7 @@ import VATPage from '@/pages/services/VATPage';
 import NIPAYEPage from '@/pages/services/NIPAYEPage';
 import HMRCPage from '@/pages/services/HMRCPage';
 import Sitemap from '@/pages/Sitemap';
+import EmailTemplatePage from '@/pages/EmailTemplatePage';
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
           </React.Fragment>
         ))}
 
+        <Route path="/internal/email-templates" element={<EmailTemplatePage />} />
         <Route path="/sitemap.xml" element={<Sitemap />} />
         
         <Route path="*" element={<Navigate to="/en" replace />} />
