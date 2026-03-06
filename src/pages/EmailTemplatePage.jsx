@@ -222,7 +222,14 @@ export default function AdamsonsTemplateGenerator() {
 
   const handleCopy = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(generatedHTML);
+      const htmlBlob = new Blob([generatedHTML], { type: "text/html" });
+      const textBlob = new Blob([generatedHTML], { type: "text/plain" });
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "text/html": htmlBlob,
+          "text/plain": textBlob,
+        }),
+      ]);
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
     } catch {
@@ -337,7 +344,7 @@ export default function AdamsonsTemplateGenerator() {
           {showPreview ? "Önizlemeyi Gizle" : "👁 Önizleme"}
         </button>
         <span style={{ fontSize: 12, color: "#718096", marginLeft: "auto" }}>
-          Gmail → Compose → HTML Inserter eklentisi → Yapıştır → Gönder
+          Copy → Gmail Compose → Ctrl+V → Send
         </span>
       </div>
 
@@ -364,65 +371,48 @@ export default function AdamsonsTemplateGenerator() {
         </div>
         <div style={{ padding: "20px 24px" }}>
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>1. Install Chrome Extension</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>1. Select a Template and Fill the Form</div>
             <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
-              Install the <strong>"Insert and Send HTML with Gmail"</strong> extension from the Chrome Web Store using the link below:
-            </p>
-            <a
-              href="https://chromewebstore.google.com/detail/insert-and-send-html-with/bcflbfdlpegakpncdgmejelcolhmfkjh?hl=en"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                marginTop: 10,
-                padding: "10px 20px",
-                background: "#4285f4",
-                color: "#fff",
-                borderRadius: 8,
-                fontSize: 14,
-                fontWeight: 600,
-                textDecoration: "none",
-                transition: "background 0.2s",
-              }}
-            >
-              Open in Chrome Web Store
-            </a>
-          </div>
-
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>2. Select a Template and Fill the Form</div>
-            <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
-              Choose one of the 3 templates above (VAT Approval, Payment Required or Refund Due). Fill in all the required fields. Use the Preview button to check how the email will look before copying.
+              Choose one of the 3 templates above (VAT Approval, Payment Required or Refund Due). Fill in all the required fields. Use the <strong>Preview</strong> button to check how the email will look before copying.
             </p>
           </div>
 
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>3. Copy the HTML</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>2. Copy the Email</div>
             <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
-              Click the <strong>"HTML Kopyala"</strong> button. The generated email HTML code will be copied to your clipboard.
+              Click the <strong>"HTML Kopyala"</strong> button. The formatted email will be copied to your clipboard as rich HTML content.
             </p>
           </div>
 
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>4. Open Gmail and Compose a New Email</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>3. Open Gmail and Compose a New Email</div>
             <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
               Open Gmail and click the <strong>"Compose"</strong> button. Enter the recipient's email address and subject line.
             </p>
           </div>
 
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>5. Use the HTML Extension</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>4. Paste into Gmail</div>
             <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
-              At the bottom of the Compose window, click the <strong>{"<>"}</strong> (HTML) icon added by the extension. Paste the copied HTML code into the text box and click <strong>"Insert HTML"</strong>.
+              Click inside the email body area and press <strong>Ctrl+V</strong> (or Cmd+V on Mac). The professional HTML template will appear with full formatting, tables and logo.
             </p>
           </div>
 
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>6. Send</div>
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>5. Send</div>
             <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
-              Make sure the email content looks correct, then click <strong>"Send"</strong>. Your professional HTML email will be delivered!
+              Review the email to make sure everything looks correct, then click <strong>"Send"</strong>. Your professional HTML email will be delivered!
+            </p>
+          </div>
+
+          <div style={{ background: "#f7fafc", borderRadius: 8, padding: "16px 20px", border: "1px solid #e2e8f0" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#718096", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>Alternative Method</div>
+            <p style={{ fontSize: 13, color: "#718096", lineHeight: 1.6, margin: 0 }}>
+              If direct paste doesn't preserve formatting, install the{" "}
+              <a href="https://chromewebstore.google.com/detail/insert-and-send-html-with/bcflbfdlpegakpncdgmejelcolhmfkjh?hl=en" target="_blank" rel="noopener noreferrer" style={{ color: "#4285f4", fontWeight: 600 }}>
+                Insert and Send HTML with Gmail
+              </a>{" "}
+              Chrome extension. Then use the <strong>{"<>"}</strong> icon in Gmail compose to paste the raw HTML code.
             </p>
           </div>
         </div>
