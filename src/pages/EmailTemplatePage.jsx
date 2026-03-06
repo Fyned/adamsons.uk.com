@@ -315,7 +315,8 @@ export default function AdamsonsTemplateGenerator() {
       const data = await res.json();
 
       if (data.success) {
-        setSendResult({ ok: true, msg: "Email sent successfully!" });
+        const sentInfo = data.sent_folder ? ` [IMAP: ${data.sent_folder}]` : "";
+        setSendResult({ ok: true, msg: "Email sent successfully!" + sentInfo });
         setAttachments([]);
       } else {
         setSendResult({ ok: false, msg: data.error || "Failed to send email" });
