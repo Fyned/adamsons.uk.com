@@ -85,6 +85,17 @@ try {
     }
 
     $mail->send();
+
+    // Save to Sent folder via IMAP so it appears in webmail/other clients
+    if (function_exists('imap_open')) {
+        $sentPath = '{imap.hostinger.com:993/imap/ssl}Sent';
+        $imap = @imap_open($sentPath, $from, $ACCOUNTS[$from]);
+        if ($imap) {
+            @imap_append($imap, $sentPath, $mail->getSentMIMEMessage(), "\\Seen");
+            @imap_close($imap);
+        }
+    }
+
     echo json_encode(['success' => true]);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $mail->ErrorInfo]);
