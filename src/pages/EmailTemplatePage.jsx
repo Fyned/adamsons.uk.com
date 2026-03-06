@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 const LOGO_BASE64 = "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";
 
@@ -198,14 +198,26 @@ const BUILDERS = {
 };
 
 export default function AdamsonsTemplateGenerator() {
+  const [authenticated, setAuthenticated] = useState(() => sessionStorage.getItem("adamsons_auth") === "true");
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState(false);
+
   const [activeTemplate, setActiveTemplate] = useState("approval");
   const [values, setValues] = useState({});
   const [showPreview, setShowPreview] = useState(false);
+
   const [recipientEmail, setRecipientEmail] = useState("");
   const [senderEmail, setSenderEmail] = useState("admin@adamsons.uk.com");
+  const [subject, setSubject] = useState("");
+  const [subjectEdited, setSubjectEdited] = useState(false);
   const [attachments, setAttachments] = useState([]);
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState(null);
+
+  const [editableHTML, setEditableHTML] = useState("");
+  const [isEdited, setIsEdited] = useState(false);
+  const [showSource, setShowSource] = useState(false);
+
   const previewRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -217,7 +229,25 @@ export default function AdamsonsTemplateGenerator() {
     { email: "latif@adamsons.uk.com", label: "Latif" },
   ];
 
+  const SUBJECT_MAP = {
+    approval: "VAT Return \u2013 Approval Required",
+    payment: "VAT Submitted \u2013 Payment Required",
+    refund: "VAT Submitted \u2013 Refund Due",
+  };
+
   const template = TEMPLATES[activeTemplate];
+  const generatedHTML = BUILDERS[activeTemplate](values);
+
+  useEffect(() => {
+    if (!isEdited) setEditableHTML(generatedHTML);
+  }, [generatedHTML, isEdited]);
+
+  useEffect(() => {
+    if (!subjectEdited) {
+      const company = values.COMPANY_NAME || "Client";
+      setSubject(`${SUBJECT_MAP[activeTemplate]} \u2013 ${company}`);
+    }
+  }, [activeTemplate, values.COMPANY_NAME, subjectEdited]);
 
   const handleChange = useCallback((key, val) => {
     setValues((prev) => ({ ...prev, [key]: val }));
@@ -228,9 +258,20 @@ export default function AdamsonsTemplateGenerator() {
     setValues({});
     setAttachments([]);
     setShowPreview(false);
+    setIsEdited(false);
+    setShowSource(false);
+    setSubjectEdited(false);
   }, []);
 
-  const generatedHTML = BUILDERS[activeTemplate](values);
+  const handleLogin = useCallback(() => {
+    if (password === "London-748596") {
+      sessionStorage.setItem("adamsons_auth", "true");
+      setAuthenticated(true);
+      setPasswordError(false);
+    } else {
+      setPasswordError(true);
+    }
+  }, [password]);
 
   const handleFileAdd = useCallback((e) => {
     const newFiles = Array.from(e.target.files);
@@ -248,21 +289,12 @@ export default function AdamsonsTemplateGenerator() {
     return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
 
-  const SUBJECT_MAP = {
-    approval: "VAT Return – Approval Required",
-    payment: "VAT Submitted – Payment Required",
-    refund: "VAT Submitted – Refund Due",
-  };
-
   const handleSend = useCallback(async () => {
     if (!recipientEmail || !recipientEmail.includes("@")) {
       setSendResult({ ok: false, msg: "Please enter a valid email address" });
       setTimeout(() => setSendResult(null), 4000);
       return;
     }
-
-    const company = values.COMPANY_NAME || "Client";
-    const subject = `${SUBJECT_MAP[activeTemplate]} – ${company}`;
 
     setSending(true);
     setSendResult(null);
@@ -272,7 +304,7 @@ export default function AdamsonsTemplateGenerator() {
       formData.append("to", recipientEmail);
       formData.append("from", senderEmail);
       formData.append("subject", subject);
-      formData.append("html", generatedHTML);
+      formData.append("html", editableHTML || generatedHTML);
       attachments.forEach((file) => formData.append("attachments[]", file));
 
       const res = await fetch("/api/send-email.php", {
@@ -289,12 +321,12 @@ export default function AdamsonsTemplateGenerator() {
         setSendResult({ ok: false, msg: data.error || "Failed to send email" });
       }
     } catch {
-      setSendResult({ ok: false, msg: "Network error – send only works on the live server" });
+      setSendResult({ ok: false, msg: "Network error \u2013 send only works on the live server" });
     } finally {
       setSending(false);
       setTimeout(() => setSendResult(null), 5000);
     }
-  }, [recipientEmail, senderEmail, activeTemplate, values, generatedHTML, attachments]);
+  }, [recipientEmail, senderEmail, subject, editableHTML, generatedHTML, attachments]);
 
   const tabStyle = (key) => ({
     padding: "10px 16px",
@@ -315,13 +347,70 @@ export default function AdamsonsTemplateGenerator() {
     refund: "#276749",
   };
 
+  if (!authenticated) {
+    return (
+      <div style={{ fontFamily: "'Segoe UI', Arial, sans-serif", maxWidth: 420, margin: "120px auto", padding: "0 16px" }}>
+        <div style={{ background: "#fff", borderRadius: 12, boxShadow: "0 4px 24px rgba(0,0,0,0.12)", overflow: "hidden" }}>
+          <div style={{ background: "#1a2744", padding: "28px 32px", textAlign: "center" }}>
+            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: 800, color: "#1a2744", fontSize: 24, marginBottom: 12 }}>A</div>
+            <div style={{ color: "#fff", fontSize: 18, fontWeight: 700 }}>Adamsons Email Templates</div>
+            <div style={{ color: "#a0aec0", fontSize: 13, marginTop: 4 }}>Enter password to continue</div>
+          </div>
+          <div style={{ padding: "32px" }}>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); setPasswordError(false); }}
+              onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+              style={{
+                width: "100%",
+                padding: "12px 16px",
+                border: `2px solid ${passwordError ? "#c53030" : "#e2e8f0"}`,
+                borderRadius: 8,
+                fontSize: 15,
+                outline: "none",
+                boxSizing: "border-box",
+                transition: "border 0.2s",
+              }}
+              autoFocus
+            />
+            {passwordError && (
+              <div style={{ color: "#c53030", fontSize: 13, marginTop: 8, fontWeight: 600 }}>
+                Incorrect password. Please try again.
+              </div>
+            )}
+            <button
+              onClick={handleLogin}
+              style={{
+                width: "100%",
+                padding: "12px",
+                background: "#1a2744",
+                color: "#fff",
+                border: "none",
+                borderRadius: 8,
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: "pointer",
+                marginTop: 16,
+                transition: "background 0.2s",
+              }}
+            >
+              Sign In
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ fontFamily: "'Segoe UI', Arial, sans-serif", maxWidth: 960, margin: "0 auto", padding: "0 16px" }}>
       <div style={{ background: "#1a2744", padding: "20px 24px", borderRadius: "12px 12px 0 0", display: "flex", alignItems: "center", gap: 16 }}>
         <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, color: "#1a2744", fontSize: 18 }}>A</div>
         <div>
           <div style={{ color: "#fff", fontSize: 18, fontWeight: 700 }}>Adamsons Email Template Generator</div>
-          <div style={{ color: "#a0aec0", fontSize: 12, marginTop: 2 }}>Formu doldurun → HTML kopyalayın → Gmail'e yapıştırın</div>
+          <div style={{ color: "#a0aec0", fontSize: 12, marginTop: 2 }}>Fill form &rarr; Preview & Edit &rarr; Send</div>
         </div>
       </div>
 
@@ -398,6 +487,46 @@ export default function AdamsonsTemplateGenerator() {
             onFocus={(e) => (e.target.style.borderColor = "#1a2744")}
             onBlur={(e) => (e.target.style.borderColor = "#e2e8f0")}
           />
+        </div>
+
+        <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
+          <label style={{ fontSize: 12, fontWeight: 700, color: "#4a5568", textTransform: "uppercase", letterSpacing: 0.5, whiteSpace: "nowrap" }}>Subject:</label>
+          <input
+            type="text"
+            value={subject}
+            onChange={(e) => { setSubject(e.target.value); setSubjectEdited(true); }}
+            style={{
+              flex: 1,
+              padding: "10px 14px",
+              border: "2px solid #e2e8f0",
+              borderRadius: 8,
+              fontSize: 14,
+              outline: "none",
+              transition: "border 0.2s",
+            }}
+            onFocus={(e) => (e.target.style.borderColor = "#1a2744")}
+            onBlur={(e) => (e.target.style.borderColor = "#e2e8f0")}
+          />
+          {subjectEdited && (
+            <button
+              onClick={() => setSubjectEdited(false)}
+              style={{
+                padding: "8px 12px",
+                background: "none",
+                color: "#718096",
+                border: "1px solid #e2e8f0",
+                borderRadius: 6,
+                fontSize: 12,
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Reset
+            </button>
+          )}
+        </div>
+
+        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
           <button
             onClick={handleSend}
             disabled={sending}
@@ -417,24 +546,8 @@ export default function AdamsonsTemplateGenerator() {
               whiteSpace: "nowrap",
             }}
           >
-            {sending ? "Sending..." : "📧 Send Email"}
+            {sending ? "Sending..." : "Send Email"}
           </button>
-        </div>
-        {sendResult && (
-          <div style={{
-            padding: "8px 14px",
-            borderRadius: 6,
-            fontSize: 13,
-            fontWeight: 600,
-            marginBottom: 12,
-            background: sendResult.ok ? "#f0fff4" : "#fff5f5",
-            color: sendResult.ok ? "#276749" : "#c53030",
-            border: `1px solid ${sendResult.ok ? "#c6f6d5" : "#fed7d7"}`,
-          }}>
-            {sendResult.msg}
-          </div>
-        )}
-        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
           <input
             ref={fileInputRef}
             type="file"
@@ -458,14 +571,14 @@ export default function AdamsonsTemplateGenerator() {
               gap: 8,
             }}
           >
-            📎 Attach Files
+            Attach Files
           </button>
           <button
             onClick={() => setShowPreview(!showPreview)}
             style={{
               padding: "10px 24px",
-              background: "#fff",
-              color: "#1a2744",
+              background: showPreview ? "#1a2744" : "#fff",
+              color: showPreview ? "#fff" : "#1a2744",
               border: "2px solid #1a2744",
               borderRadius: 8,
               fontSize: 14,
@@ -473,9 +586,25 @@ export default function AdamsonsTemplateGenerator() {
               cursor: "pointer",
             }}
           >
-            {showPreview ? "Hide Preview" : "👁 Preview"}
+            {showPreview ? "Hide Preview" : "Preview & Edit"}
           </button>
         </div>
+
+        {sendResult && (
+          <div style={{
+            padding: "8px 14px",
+            borderRadius: 6,
+            fontSize: 13,
+            fontWeight: 600,
+            marginTop: 12,
+            background: sendResult.ok ? "#f0fff4" : "#fff5f5",
+            color: sendResult.ok ? "#276749" : "#c53030",
+            border: `1px solid ${sendResult.ok ? "#c6f6d5" : "#fed7d7"}`,
+          }}>
+            {sendResult.msg}
+          </div>
+        )}
+
         {attachments.length > 0 && (
           <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
             {attachments.map((file, i) => (
@@ -489,7 +618,7 @@ export default function AdamsonsTemplateGenerator() {
                 fontSize: 13,
                 color: "#4a5568",
               }}>
-                <span>📄 {file.name}</span>
+                <span>{file.name}</span>
                 <span style={{ color: "#a0aec0", fontSize: 11 }}>({formatFileSize(file.size)})</span>
                 <button
                   onClick={() => handleFileRemove(i)}
@@ -503,7 +632,7 @@ export default function AdamsonsTemplateGenerator() {
                     lineHeight: 1,
                   }}
                 >
-                  ×
+                  &times;
                 </button>
               </div>
             ))}
@@ -513,14 +642,95 @@ export default function AdamsonsTemplateGenerator() {
 
       {showPreview && (
         <div style={{ background: "#e2e8f0", padding: "24px", borderRadius: "0 0 12px 12px" }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 12, alignItems: "center", flexWrap: "wrap" }}>
+            <button
+              onClick={() => setShowSource(false)}
+              style={{
+                padding: "8px 16px",
+                background: !showSource ? "#1a2744" : "#fff",
+                color: !showSource ? "#fff" : "#1a2744",
+                border: "2px solid #1a2744",
+                borderRadius: 6,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Visual Preview
+            </button>
+            <button
+              onClick={() => setShowSource(true)}
+              style={{
+                padding: "8px 16px",
+                background: showSource ? "#1a2744" : "#fff",
+                color: showSource ? "#fff" : "#1a2744",
+                border: "2px solid #1a2744",
+                borderRadius: 6,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Edit Source
+            </button>
+            {isEdited && (
+              <>
+                <button
+                  onClick={() => { setIsEdited(false); setEditableHTML(generatedHTML); }}
+                  style={{
+                    padding: "8px 16px",
+                    background: "#fff",
+                    color: "#c53030",
+                    border: "2px solid #c53030",
+                    borderRadius: 6,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    marginLeft: "auto",
+                  }}
+                >
+                  Reset to Template
+                </button>
+                <span style={{ fontSize: 12, color: "#718096", fontStyle: "italic" }}>(manually edited)</span>
+              </>
+            )}
+          </div>
+
           <div style={{ background: "#fff", borderRadius: 8, overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
             <iframe
               ref={previewRef}
-              srcDoc={generatedHTML}
-              style={{ width: "100%", height: 700, border: "none" }}
+              srcDoc={editableHTML}
+              style={{ width: "100%", height: showSource ? 400 : 700, border: "none", transition: "height 0.3s" }}
               title="Email Preview"
             />
           </div>
+
+          {showSource && (
+            <div style={{ marginTop: 12 }}>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#4a5568", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 }}>
+                HTML Source Code
+              </label>
+              <textarea
+                value={editableHTML}
+                onChange={(e) => { setEditableHTML(e.target.value); setIsEdited(true); }}
+                style={{
+                  width: "100%",
+                  height: 300,
+                  padding: 16,
+                  border: "2px solid #1a2744",
+                  borderRadius: 8,
+                  fontSize: 13,
+                  fontFamily: "'Consolas', 'Monaco', monospace",
+                  lineHeight: 1.5,
+                  resize: "vertical",
+                  outline: "none",
+                  boxSizing: "border-box",
+                  background: "#1a2744",
+                  color: "#e2e8f0",
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -534,30 +744,33 @@ export default function AdamsonsTemplateGenerator() {
         </div>
         <div style={{ padding: "20px 24px" }}>
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>1. Select a Template and Fill the Form</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>1. Select Template & Fill Form</div>
             <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
-              Choose one of the 3 templates above (VAT Approval, Payment Required or Refund Due). Fill in all the required fields. Use the <strong>Preview</strong> button to check how the email will look.
+              Choose a template above and fill in all the required fields. The email will be generated automatically.
             </p>
           </div>
-
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>2. Choose Sender & Enter Recipient</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>2. Preview & Edit</div>
             <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
-              Select which email account to send from using the <strong>sender dropdown</strong>. Type the client's email address in the <strong>recipient email</strong> field.
+              Click <strong>"Preview & Edit"</strong> to see the email. Switch to <strong>"Edit Source"</strong> to modify the HTML directly. Use <strong>"Reset to Template"</strong> to revert changes.
             </p>
           </div>
-
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>3. Attach Files (Optional)</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>3. Customise Subject & Sender</div>
             <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
-              Click <strong>"Attach Files"</strong> to add PDF documents, spreadsheets or other files. You can attach multiple files. Click <strong>×</strong> to remove an attachment.
+              The subject line is auto-generated but fully editable. Select which email account to send from and enter the recipient address.
             </p>
           </div>
-
-          <div style={{ marginBottom: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>4. Send Email</div>
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>4. Attach Files (Optional)</div>
             <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
-              Click <strong>"Send Email"</strong>. The professional HTML email with all attachments will be sent directly via SMTP with full formatting preserved.
+              Click <strong>"Attach Files"</strong> to add PDFs, spreadsheets or other documents.
+            </p>
+          </div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>5. Send</div>
+            <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
+              Click <strong>"Send Email"</strong>. The HTML email with all attachments will be sent directly via SMTP.
             </p>
           </div>
         </div>
