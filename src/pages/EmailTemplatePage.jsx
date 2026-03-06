@@ -220,6 +220,7 @@ export default function AdamsonsTemplateGenerator() {
 
   const previewRef = useRef(null);
   const fileInputRef = useRef(null);
+  const visuallyEditedRef = useRef(false);
 
   const SENDER_ACCOUNTS = [
     { email: "admin@adamsons.uk.com", label: "Admin" },
@@ -261,6 +262,7 @@ export default function AdamsonsTemplateGenerator() {
     setIsEdited(false);
     setShowSource(false);
     setSubjectEdited(false);
+    visuallyEditedRef.current = false;
   }, []);
 
   const handleLogin = useCallback(() => {
@@ -289,6 +291,44 @@ export default function AdamsonsTemplateGenerator() {
     return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
 
+  const extractCleanHTML = useCallback(() => {
+    if (!previewRef.current) return editableHTML;
+    try {
+      const doc = previewRef.current.contentDocument;
+      if (!doc || !doc.body) return editableHTML;
+      let html = doc.documentElement.outerHTML;
+      html = html.replace(/\s*contenteditable="true"/gi, "");
+      html = html.replace(/<style id="_visual_edit_styles">[\s\S]*?<\/style>/i, "");
+      return "<!DOCTYPE html>" + html;
+    } catch {
+      return editableHTML;
+    }
+  }, [editableHTML]);
+
+  const handleIframeLoad = useCallback(() => {
+    if (!previewRef.current) return;
+    try {
+      const doc = previewRef.current.contentDocument;
+      if (!doc || !doc.body) return;
+      doc.body.setAttribute("contenteditable", "true");
+      if (!doc.getElementById("_visual_edit_styles")) {
+        const style = doc.createElement("style");
+        style.id = "_visual_edit_styles";
+        style.textContent = `
+          body { cursor: text; min-height: 100%; }
+          body:focus { outline: none; }
+          td:hover, p:hover, span:hover, strong:hover { outline: 1px dashed rgba(26,39,68,0.3); outline-offset: 2px; }
+          td:focus, p:focus, span:focus, strong:focus { outline: 2px solid #1a2744; outline-offset: 2px; }
+        `;
+        doc.head.appendChild(style);
+      }
+      doc.body.addEventListener("input", () => {
+        setIsEdited(true);
+        visuallyEditedRef.current = true;
+      });
+    } catch {}
+  }, []);
+
   const handleSend = useCallback(async () => {
     if (!recipientEmail || !recipientEmail.includes("@")) {
       setSendResult({ ok: false, msg: "Please enter a valid email address" });
@@ -304,7 +344,8 @@ export default function AdamsonsTemplateGenerator() {
       formData.append("to", recipientEmail);
       formData.append("from", senderEmail);
       formData.append("subject", subject);
-      formData.append("html", editableHTML || generatedHTML);
+      const htmlToSend = visuallyEditedRef.current ? extractCleanHTML() : (editableHTML || generatedHTML);
+      formData.append("html", htmlToSend);
       attachments.forEach((file) => formData.append("attachments[]", file));
 
       const res = await fetch("/api/send-email.php", {
@@ -326,7 +367,7 @@ export default function AdamsonsTemplateGenerator() {
       setSending(false);
       setTimeout(() => setSendResult(null), 5000);
     }
-  }, [recipientEmail, senderEmail, subject, editableHTML, generatedHTML, attachments]);
+  }, [recipientEmail, senderEmail, subject, editableHTML, generatedHTML, attachments, extractCleanHTML]);
 
   const tabStyle = (key) => ({
     padding: "10px 16px",
@@ -644,7 +685,7 @@ export default function AdamsonsTemplateGenerator() {
         <div style={{ background: "#e2e8f0", padding: "24px", borderRadius: "0 0 12px 12px" }}>
           <div style={{ display: "flex", gap: 8, marginBottom: 12, alignItems: "center", flexWrap: "wrap" }}>
             <button
-              onClick={() => setShowSource(false)}
+              onClick={() => { setShowSource(false); visuallyEditedRef.current = false; }}
               style={{
                 padding: "8px 16px",
                 background: !showSource ? "#1a2744" : "#fff",
@@ -659,7 +700,13 @@ export default function AdamsonsTemplateGenerator() {
               Visual Preview
             </button>
             <button
-              onClick={() => setShowSource(true)}
+              onClick={() => {
+                if (visuallyEditedRef.current) {
+                  setEditableHTML(extractCleanHTML());
+                  visuallyEditedRef.current = false;
+                }
+                setShowSource(true);
+              }}
               style={{
                 padding: "8px 16px",
                 background: showSource ? "#1a2744" : "#fff",
@@ -676,7 +723,7 @@ export default function AdamsonsTemplateGenerator() {
             {isEdited && (
               <>
                 <button
-                  onClick={() => { setIsEdited(false); setEditableHTML(generatedHTML); }}
+                  onClick={() => { setIsEdited(false); setEditableHTML(generatedHTML); visuallyEditedRef.current = false; }}
                   style={{
                     padding: "8px 16px",
                     background: "#fff",
@@ -696,10 +743,17 @@ export default function AdamsonsTemplateGenerator() {
             )}
           </div>
 
+          {!showSource && (
+            <div style={{ textAlign: "center", marginBottom: 8, padding: "8px 12px", background: "#ebf8ff", borderRadius: 6, border: "1px solid #90cdf4" }}>
+              <span style={{ fontSize: 13, color: "#2b6cb0", fontWeight: 600 }}>Click on any text in the preview to edit it directly</span>
+            </div>
+          )}
+
           <div style={{ background: "#fff", borderRadius: 8, overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
             <iframe
               ref={previewRef}
               srcDoc={editableHTML}
+              onLoad={handleIframeLoad}
               style={{ width: "100%", height: showSource ? 400 : 700, border: "none", transition: "height 0.3s" }}
               title="Email Preview"
             />
@@ -752,7 +806,7 @@ export default function AdamsonsTemplateGenerator() {
           <div style={{ marginBottom: 20 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2744", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>2. Preview & Edit</div>
             <p style={{ fontSize: 14, color: "#4a5568", lineHeight: 1.6, margin: 0 }}>
-              Click <strong>"Preview & Edit"</strong> to see the email. Switch to <strong>"Edit Source"</strong> to modify the HTML directly. Use <strong>"Reset to Template"</strong> to revert changes.
+              Click <strong>"Preview & Edit"</strong> to see the email. Click directly on any text in the preview to edit it visually. Switch to <strong>"Edit Source"</strong> for HTML editing. Use <strong>"Reset to Template"</strong> to revert changes.
             </p>
           </div>
           <div style={{ marginBottom: 20 }}>
