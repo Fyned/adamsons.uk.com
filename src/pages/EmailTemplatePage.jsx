@@ -223,23 +223,32 @@ export default function AdamsonsTemplateGenerator() {
   const handleCopy = useCallback(() => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(generatedHTML, "text/html");
-    const bodyContent = doc.body.innerHTML;
+    const bodyHTML = doc.body.innerHTML;
+    const bodyText = doc.body.textContent;
 
-    const container = document.createElement("div");
-    container.innerHTML = bodyContent;
-    container.style.cssText = "position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none;";
-    document.body.appendChild(container);
+    const el = document.createElement("span");
+    el.textContent = "\u200B";
+    el.style.cssText = "position:fixed;left:-9999px";
+    document.body.appendChild(el);
 
     const range = document.createRange();
-    range.selectNodeContents(container);
+    range.selectNodeContents(el);
     const sel = window.getSelection();
     sel.removeAllRanges();
     sel.addRange(range);
 
+    const listener = (e) => {
+      e.clipboardData.setData("text/html", bodyHTML);
+      e.clipboardData.setData("text/plain", bodyText);
+      e.preventDefault();
+    };
+
+    document.addEventListener("copy", listener);
     document.execCommand("copy");
+    document.removeEventListener("copy", listener);
 
     sel.removeAllRanges();
-    document.body.removeChild(container);
+    document.body.removeChild(el);
 
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
